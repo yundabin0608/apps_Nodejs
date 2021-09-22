@@ -63,13 +63,25 @@ userSchema.methods.generateToken = function(cd){
     var user = this;
     var token = jwt.sign(user._id.toHexString(), 'secretToken')
     // jwt.sign 시 첫번째 인자가 object이어햐 하므로 toHexString()을 추가적으로 해줌
-    
+
     // user._id + 'seceretToken' 형태로 토큰 만듦
     user.token = token
     user.save(function(err,user){
         if(err) return cb(err)
         cb(null,user)
     })
+}
+
+userSchema.statics.findByToken = function(token, cb){
+    var user = this;
+    // 토큰 복호화시 verify 이용
+    jwt.verify(token, 'secretToken', function(err, decoded){
+        //decoded는 유저 아이디로 될 것.
+        user.findOne({"_id": decoded, "token": token}, function(err, user){
+            if(err) return cb(err);
+            cb(null,user)
+        })
+    }) 
 }
 
 const user = mongoose.model('User', userSchema)

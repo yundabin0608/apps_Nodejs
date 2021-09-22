@@ -7,7 +7,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser')
 const {User} =require("./models/User");
+const {auth} =require("./middlewar/auth");
 const config = require('/config/key');
+
 // application /x-www-from-urlencoded를 분석해서 가지고 올 수 있게 함  밑에는 json 형식
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -21,7 +23,7 @@ mongoose.connect(config.mongoURI)
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
-app.post('/register', (req, res)=>{
+app.post('api/users/register', (req, res)=>{
     //회원가입에 필요한 정보들을 클라이언트에서 가져오면 그것들을 DB에 넣어줌
 
     const user = new User(req.body) //bodyparser 때문에 이렇게 쓸 수 있음
@@ -33,7 +35,7 @@ app.post('/register', (req, res)=>{
     })
 })
 
-app.post('/login', (req, res)=>{
+app.post('api/users/login', (req, res)=>{
 
     //요청된 이메일이 DB에 있는지 찾기
     User.findOne({email:req.body.email}, (err,user)=> {
@@ -59,10 +61,21 @@ app.post('/login', (req, res)=>{
             })
         })
     })
-   
+})
 
-    
-
+// auth라는 미들웨어를 사용할 것 (콜백함수 하기전에 중간에 하는것)
+app.get('api/users/auth', auth,(req,res)=>{
+    // 성공적으로 미들웨어를 통과했을것
+    res.status(200).json({
+        _id: req.user._id, // auth에서 user을 req에 넣었기 때문에 이처럼 쓸 수 있음
+        isAdmin: req.user.role === 0 ? false:true,
+        isAuth: true,
+        email: req.user.email,
+        name: req.user.name,
+        lastname:req.user.lastname,
+        role: req.user.role,
+        image: req.user.image
+    })
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
