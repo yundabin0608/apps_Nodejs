@@ -6,12 +6,12 @@ const port = 5000
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const {User} =require("./models/User");
-
+const config = require('/config/key');
 // application /x-www-from-urlencoded를 분석해서 가지고 올 수 있게 함  밑에는 json 형식
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-mongoose.connect('mongodb+srv://dabin:0000@boilerplate.h5kqe.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+mongoose.connect(config.mongoURI)
   .then(()=> console.log('MongoDB connected!'))
   .catch(err => console.log(err))
 
