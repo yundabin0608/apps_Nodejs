@@ -78,4 +78,17 @@ app.get('api/users/auth', auth,(req,res)=>{
     })
 })
 
+// 로그인 된 상태이므로 auth라는 미들웨어 넣어주면 됨
+app.get('/api/users/logout', auth, (req,res)=>{
+    // 미들웨어에서 가져와서 _id 찾은 후 token: ""으로 업데이트함 (findOneAndUpdate)
+    User.findOneAndUpdate({_id:req.user._id},
+        {token: ""},
+        (err,user)=>{
+            if(err) return res.json({success:false, err});
+            return res.status(200).send({
+                success:true
+            })        
+        })
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
