@@ -47,16 +47,30 @@ router.post('/', (req, res) => {
 
 
 router.post('/products', (req,res)=>{
-    //produc 안의 모든 상품 가져오기. 조건주고싶으면 find 안에 {}객체로 표시
-    Product.find()
-        .popultate("writer")
-        .exec((err,productInfo)=>{
-            // json 형식으로 프론트로 정보 보내는것
-            if (err) return res.status(400).json({success:false, err})
-            return res.status(200).json({success:true, productInfo})
+
+    let limit = req.body.limit ? parseInt(req.body.limit):40 ;// limit은 임의
+    let skip = req.body.skip ? parseInt(req.body.skip) : 0;
+    let findArgs = {};
+
+    for(let key in req.body.filters){
+        // contitnets []에 하나 이상 있으면  findArgs에 넣기 -> product.find() 할때 사용
+        if(req.body.filters[key.length > 0]){
+            findArgs[key] = req.body.filters[key];
+        }
+    }
+
+    Product.find(findArgs)
+        .populate("writer")
+        .skip(skip)    // 상품 skip 번째부터 가져와
+        .limit(limit)  // 상품 limit 수만큼 가져올것
+        .exec((err, productInfo) => {
+             // json 형식으로 프론트로 정보 보내는것
+            if(err) return res.status(400).json({ success: false, err})
+            return res.status(200).json({
+                success: true, productInfo,
+                postSize: productInfo.length
+            })
         })
-
-
 })
 
 module.exports = router;
