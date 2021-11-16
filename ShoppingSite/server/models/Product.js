@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const productSchema = mongoose.Schema({ 
+const productSchema = mongoose.Schema({ // Product Model 만들기
    Writer: {
        type: Schema.Types.ObjectId,
        ref: 'User'
@@ -27,15 +27,24 @@ const productSchema = mongoose.Schema({
        default: 0
    },
    continents: {
-       type:Number,
-       default: 1
-    },
+        type:Number,
+        default: 1
+   },
    view: {
        type: Number,
        default: 0
    }
 }, {timestamps: true}) 
 
+productSchema.index({
+    title: 'text',
+    description: 'text'
+}, {
+    weights: {
+        title: 5,
+        description: 1
+    }
+})
 
 const Product = mongoose.model('Product', productSchema);
 

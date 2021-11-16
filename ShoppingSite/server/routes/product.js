@@ -50,16 +50,32 @@ router.post('/products', (req,res)=>{
 
     let limit = req.body.limit ? parseInt(req.body.limit):40 ;// limit은 임의
     let skip = req.body.skip ? parseInt(req.body.skip) : 0;
+    let term = req.body.searchTerm; 
     let findArgs = {};
 
     for(let key in req.body.filters){
         // contitnets []에 하나 이상 있으면  findArgs에 넣기 -> product.find() 할때 사용
+        // 필터에 두개부분이 있음 key에는 price와 continent가 존재함
         if(req.body.filters[key.length > 0]){
-            findArgs[key] = req.body.filters[key];
+
+            if(key === "price"){
+                findArgs[key] = {
+                    // mongoDB에서 사용, 이것보다 크거나 같고를 의미
+                    $gte: req.body.filters[key][0], 
+                    // 이것보다 작거나 같음을 의미
+                    $lte: req.body.filters[key][1]
+                    // [200,299]이면 200부터 299까지에 해당
+                }
+            }else{
+                findArgs[key] = req.body.filters[key];
+            }
+            
         }
     }
 
-    Product.find(findArgs)
+    if(term){
+        Product.find(findArgs)
+        .find({ $text: {$search: term}}) 
         .populate("writer")
         .skip(skip)    // 상품 skip 번째부터 가져와
         .limit(limit)  // 상품 limit 수만큼 가져올것
@@ -71,6 +87,19 @@ router.post('/products', (req,res)=>{
                 postSize: productInfo.length
             })
         })
+    }else{
+        Product.find(findArgs)
+        .populate("writer")
+        .skip(skip)
+        .limit(limit)
+        .exec((err, productInfo) => {
+            if(err) return res.status(400).json({ success: false, err})
+            return res.status(200).json({
+                success: true, productInfo,
+                postSize: productInfo.length
+            })
+        })
+    }
 })
 
 module.exports = router;

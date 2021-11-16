@@ -5,7 +5,10 @@ import {Icon, Col, Card, Row, Carousel} from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import ImageSlider from '../../utils/ImageSlider';
 import CheckBox from './Sections/CheckBox';
-import {continents} from './Sections/Datas';
+import {continents, price} from './Sections/Datas';
+import RadioBox from './Sections/RadioBox';
+import SearchFeature from './Sections/SearchFeature';
+
 
 // 이미지 디자인은 ant 디자인의 carousel 이용
 // 더보기 버튼을 위해 -> Limit & Skip 과 몽고DB이용
@@ -20,6 +23,7 @@ function LandingPage() {
         continents: [],
         price: []
     })
+    const [SearchTerm, setSearchTerm] = useState('')
 
     useEffect(() =>  {
         // request 보낼때 정보를 제한둬서 주기
@@ -83,12 +87,49 @@ function LandingPage() {
         setSkip(0)
     }
 
+    const handlePrice = (value) => {
+        const data = price;
+        let array = [];
+
+        for(let key in data){
+            if(data[key]._id === parseInt(value, 10)){
+                array = data[key].array;
+            }
+
+            return array;
+        }
+    }
+
+
     const handleFilters = (filters, category) => {
         const newFilters = {...Filters}
 
         // continent 아니면 price를 나타내는것 
         newFilters[category] = filters
-        showFilteredResults()
+
+        // 카테고리가 price일땐 hanlePrice를 수행하도록함
+        if(category=="price"){
+            let priceValues=handlePrice(filters)
+            newFilters[category]=priceValues
+        }
+
+        showFilteredResults(newFilters)
+        setFilters(newFilters)
+    }
+
+ 
+    const updateSearchTerm = (newSearcTerm) => {
+
+        let body = {
+            skip: 0,
+            limit: Limit,
+            filters: Filters,
+            searchTerm: newSearcTerm
+        }
+
+        setSkip(0)
+        setSearchTerm(newSearcTerm)
+        getProducts(body)
     }
 
 
@@ -98,14 +139,26 @@ function LandingPage() {
             <h2>Let's Travel Anywhere <Icon type='rocket'/></h2>
         </div>
 
+         {/* 필터부분, 여백을 위해 gutter 사용 */}
+        <Row gutter={[16,16]}>
+                <Col lg={12}  xs={24}>
+                    {/* CheckBox */}
+                    <CheckBox list={continents} handleFilters={filters => handleFilters(filters, "continents")}/>
+                </Col>
+                <Col lg={12} xs={24}>
+                    {/* RadioBox */}
+                    <RadioBox list={price} handleFilters={filters => handleFilters(filters, "price")}/>
+                </Col>
+        </Row>
 
-
-         {/* CheckBox 데이터들을 checkbox 컴포넌트들에 내려줌 자식 -> 부모 위해 handleFilter s*/}
-             <CheckBox list={continents} handleFilters={filters => handleFilters(filters, "continents")}/>
-
-         {/* RadioBox */}
-
-         {/* 여백을 위해 gutter 사용 */}
+        {/* 검색부분 */}
+        <div style={{display: 'flex', justifyContent: 'flex-end', margin: '1rem auto'}}>
+                <SearchFeature 
+                    refreshFunction={updateSearchTerm}
+                />
+        </div>
+         
+         {/* 카드부분 */}
          <Row gutter={[16, 16]}>
          {renderCards}
          </Row>
