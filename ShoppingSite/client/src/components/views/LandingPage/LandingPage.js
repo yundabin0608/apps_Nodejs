@@ -100,7 +100,6 @@ function LandingPage() {
         }
     }
 
-
     const handleFilters = (filters, category) => {
         const newFilters = {...Filters}
 
@@ -117,7 +116,6 @@ function LandingPage() {
         setFilters(newFilters)
     }
 
- 
     const updateSearchTerm = (newSearcTerm) => {
 
         let body = {
