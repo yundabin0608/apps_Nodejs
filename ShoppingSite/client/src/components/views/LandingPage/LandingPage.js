@@ -52,9 +52,10 @@ function LandingPage() {
 
     // Product에서 상품 하나하나 가져와서 카드로.
     // 화면크기별 반응형 웹 => 가로가 24인데 클땐 6*4=24, 작을땐 24*1=24
+    // 사진별로 상품소개 링크를 줄것. cover a태그로 줌 product의 unique id를 매겨서 링크로 줄것 (localhost:3000/product/dd13dakqq 이런식)
     const renderCards = Products.map((product, index) => {
         return  <Col lg={6} md={8} xs={24} key={index}>
-            <Card cover={<ImageSlider images={product.images} />}>
+            <Card cover={<a href={`/product/${product._id}`}><ImageSlider images={product.images} /></a>}>
                 <Meta
                     title={product.title}
                     description={`$${product.price}`}

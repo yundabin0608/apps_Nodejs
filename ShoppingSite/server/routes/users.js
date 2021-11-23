@@ -68,4 +68,55 @@ router.get("/logout", auth, (req, res) => {
     });
 });
 
+router.post("/addToCart", auth, (req, res) => {
+
+    // 해당 사용자 찾기
+    // auth middleware 때문에 가능. 쿠키속 토큰을 이용해 유저의 정보 가져옴
+    User.findOne({ _id: req.user._id},
+        (err, userInfo) => {
+            
+            // 가져온 정보에서 카트 상품의 중복여부 파악
+            let duplicate = false;
+            userInfo.cart.forEach((item) => {
+                if(item.id === req.body.productId){
+                    duplicate = true;
+                }
+            })
+
+            // 상품이 이미 있을 때
+            if(duplicate){
+                User.findOneAndUpdate(
+                    {_id: req.user._id, "cart.id" : req.body.productId},
+                    { $inc: { "cart.$.quantity": 1}}, // 상품갯수를 1개 올림
+                    { new: true},
+                    (err, userInfo) => {
+                        if(err) return res.status(200).json({success: false, err})
+                        res.status(200).send(userInfo.cart)
+                    }
+                )
+            }else{ // 상품이 이미 있지 않을 때 
+                User.findOneAndUpdate(
+                    {_id: req.user._id},
+                    {
+                        // 카트에 아이디, 수량, 날짜 모두 넣어줄 것
+                        $push: {
+                            cart: {
+                                id: req.body.productId,
+                                quantity: 1,
+                                date: Date.now()
+                            }
+                        }
+                    },
+                    {new: true},
+                    (err, userInfo) => {
+                        if(err) return res.status(400).json({success: false, err})
+                        res.status(200).send(userInfo.cart)
+                    }
+                )
+            }
+
+        })
+
+});
+
 module.exports = router;

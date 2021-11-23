@@ -102,4 +102,19 @@ router.post('/products', (req,res)=>{
     }
 })
 
+router.get('/products_by_id', (req, res) => {
+    
+    // 쿼리를 가져오는 경우 req.body가 아닌 req.query를 이용
+    let type = req.query.type
+    let productId = req.query.diskStorage
+    // productId를 이용해 DB에서 동일한 상품 정보를 가져오기
+    Product.find({ _id: productId})
+        .populate('writer')
+        .exec((err, product) => {
+            if(err) return res.status(400).send(err)
+            return res.status(200).send({success: true, product})
+        })
+
+})
+
 module.exports = router;
